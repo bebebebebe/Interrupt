@@ -1,6 +1,6 @@
-Message formats:
+## Message formats:
 
-Sent by client:
+### Sent by client:
 
 connect:
 {'type' => 'connect', 'name' => (String), 'time' => (timestamp String)}
@@ -15,16 +15,16 @@ exists:
 {'type' => 'hi', 'time' => (timestamp String)}
 - not yet implemented
 
-Sent by server:
+### Sent by server:
 
 {'type' => chat, 'body' => (String), 'time' => (timestamp String)}
 
 {'type' => 'id', 'time' => (timestamp String)} 
 - request connect message from client
 
-Behavior on wrong message types:
+## Behavior on wrong message types:
 
-Received by server:
+### Received by server:
 
 Checks message format and sender. Ignores "wrong" messages, which are
 - wrong format
@@ -33,9 +33,10 @@ Checks message format and sender. Ignores "wrong" messages, which are
 connect message from client by sending just this client an id message.
 Shouldn't add client to clients list until get a connect message with name.
 
-Received by client:
+###Received by client:
 
 Checks message format and sender. Ignores "wrong" messages, which are:
 - sender is not server
 - format is wrong
+
 
