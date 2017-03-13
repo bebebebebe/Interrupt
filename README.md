@@ -28,8 +28,8 @@ quit:
 Checks message format and sender. Ignores "wrong" messages, which are
 - wrong format
 - sender not in clients list, if its not a connect message
-- when client sends connect message, there should be a "handshake", where the client keeps 
-resending the connect message until getting an acknowledgement from the client. This way
+- when client sends connect message, there should be a "handshake", where the client keeps
+resending the connect message until getting an acknowledgement from the server. This way
 we know the server has the client in the clients list before the client starts sending chat messages.
 
 ###Received by client:
@@ -50,5 +50,7 @@ private to "new" user (not assumed to be in client list)
 
 The values of the msg keys here are of a form in the "sent by server" section above.
 
+### To Do: checking message types
+In chat messages, both the client and server should check for cursor key presses, etc, and not pass them along in chat messages. Currently, as a quick fix, eg "\e", "\r", "\u" characters are not sent on to the server, so the client can't effect eg a backspace, delete, or return. Some letter parts of these could get passed along though. Another option would be to escape characters, so the user could send along codes for eg backspace, rather than having the keypress ignored entirely.
 
 
