@@ -7,6 +7,8 @@ class InterruptClient
 	PROMPT = '> '
 	MAX_MSG_LENGTH = 1024 # max length of incoming message read
 	HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
+	CMD_QUIT = '/'
+	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type '/'"
 
 
 	def initialize(server_host, server_port)
@@ -20,7 +22,8 @@ class InterruptClient
 	def run
 		set_name
 		handshake
-		#terminal_config
+		instructions
+		terminal_config
 		receive_loop
 	end
 
@@ -49,17 +52,43 @@ class InterruptClient
 		msg['type'] == 'ack'
 	end
 
+	def instructions
+		puts INSTRUCTIONS
+	end
+
 	def receive_loop
 		loop do
 			to_read = IO.select([@client, STDIN]) # check what's ready to read: socket, or terminal input
 			to_read[0].each { |ios|
-
 				if ios == @client
 					msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
-					p msg
-					bye
+					handle_msg(msg, sender)
+				elsif ios.tty? # ios comes from terminal
+					input = STDIN.getc
+					handle_key(input)
 				end
 			}
+		end
+	end
+
+	def handle_msg(msg, sender)
+		msg = parse_msg(msg, sender)
+		return if msg.nil?
+
+		case msg['type']
+		when 'chat'
+			text = msg['body']
+			print "\033[#{text.length}D" + text # move cursor left text.length places and print text
+		end
+	end
+
+	def handle_key(input)
+		case input
+		when CMD_QUIT
+			bye
+		else
+			# TODO: regex check to restrict allowed chars
+			send_msg(msg_chat(input))
 		end
 	end
 
