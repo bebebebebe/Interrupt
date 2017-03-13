@@ -141,10 +141,13 @@ class InterruptServer
 		@chat_text = @chat_text[string.length..-1] + string
 		msg = {
 			'type' => 'chat',
-			'msg' => @chat_text
+			'msg' => {
+				'type' => 'chat',
+				'body' => @chat_text
+			}
 		}
 
-		@outbox << @chat_text
+		@outbox << msg
 	end
 
 	def ack_client(host, port)
