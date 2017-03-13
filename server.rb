@@ -25,7 +25,7 @@ class InterruptServer
 				data, sender = @server.recvfrom(MAX_MSG_LENGTH)
 				handle_incoming(data, sender)
 			end
-			handle_outgoing
+			handle_outbox
 		end
 	end
 
@@ -58,7 +58,21 @@ class InterruptServer
 	def handle_outbox
 		while not @outbox.empty?
 			msg = @outbox.shift
-
+			case msg['type']
+			when 'chat'
+				@clients.each{ |key, client|
+					host = client['host']
+					port = client['port']
+					send_msg(msg['msg'], host, port)
+				}
+			when 'private_new'
+				send_msg(msg['msg'], msg['host'], msg['port'])
+			when 'private'
+				if @clients.has_key?(msg['key'])
+					client = @clients[key]
+					send_msg(msg['msg'], client['host'], client['port'])
+				end
+			end
 		end
 	end
 
@@ -145,7 +159,7 @@ class InterruptServer
 	end
 
 	def send_msg(msg, host, port)
-		msg['time'] = Time.to_f.to_s
+		msg['time'] = Time.now.to_f.to_s
 		json = msg.to_json
 		@server.send(json, 0, host, port)
 	end
