@@ -103,16 +103,14 @@ class InterruptServer
 
 		case msg['type']
 		when 'connect'
-			return nil if not msg.has_key?('name')
+			msg if msg.has_key?('name')
 		when 'chat'
-			return nil if not msg.has_key?('body')
+			msg if msg.has_key?('body')
 		when 'quit'
-			
+			msg
 		else
-			return nil
+			nil
 		end
-
-		return msg
 	end
 
 	def add_client(key, host, port, nickname, time)
