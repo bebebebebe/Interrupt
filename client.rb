@@ -7,8 +7,8 @@ class InterruptClient
 	PROMPT = '> '
 	MAX_MSG_LENGTH = 1024 # max length of incoming message read
 	HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
-	CMD_QUIT = '/'
-	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type '/'"
+	CMD_QUIT = "\\"
+	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type \\"
 
 
 	def initialize(server_host, server_port)
@@ -64,7 +64,7 @@ class InterruptClient
 					msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
 					handle_msg(msg, sender)
 				elsif ios.tty? # ios comes from terminal
-					input = STDIN.getc
+					input = STDIN.getc.chr
 					handle_key(input)
 				end
 			}
@@ -82,12 +82,13 @@ class InterruptClient
 		end
 	end
 
+	# disregard eg return, delete, backspace keys presses
+	# only pass on to server word, punctuation, or space characters
+	# TODO: strip out two chars following '\e'
 	def handle_key(input)
-		case input
-		when CMD_QUIT
+		if input == CMD_QUIT
 			bye
-		else
-			# TODO: regex check to restrict allowed chars
+		elsif	not /^[[[:word:]][[:punct:]] ]$/.match(input).nil?
 			send_msg(msg_chat(input))
 		end
 	end
