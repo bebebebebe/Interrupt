@@ -1,3 +1,5 @@
+[Readme in progress: these are notes helpful while developing]
+
 ## Message formats:
 
 ### Sent by client:
@@ -38,5 +40,18 @@ Shouldn't add client to clients list until get a connect message with name.
 Checks message format and sender. Ignores "wrong" messages, which are:
 - sender is not server
 - format is wrong
+
+## Server message representations (internal to server program)
+chat message: send to all clients
+{'type' => 'chat', 'msg'=> {...}}
+
+private
+{'type' => 'private', 'key'=>'..' 'msg'=> {....}}
+
+private to "new" user (not assumed to be in client list)
+{'type' => private_new, 'host'=>'..', 'port'=>.., msg=>{...}}
+
+The values of the msg keys here are of a form in the "sent by server" section above.
+
 
 
