@@ -12,10 +12,10 @@ class InterruptServer
 		@server.bind(host, port)
 
 		@clients = {}
-		@chat_text = ' ' * CHAT_LENGTH
-		@outbox = [] # array of messages, as hashes with sender info
-
 		@colors_available = [*0..num_colors-1]
+
+		@chat_array = Array.new(CHAT_LENGTH, [' ', nil]) # each element is [character, color]
+		@outbox = [] # array of messages, as hashes with sender info
 	end
 
 	def run
@@ -32,8 +32,8 @@ class InterruptServer
 	end
 
 	def tick
-		if @chat_text != ' ' * CHAT_LENGTH
-			update_chat_text(' ')
+		if @chat_array != ' ' * CHAT_LENGTH
+			update_chat_text(' ', nil)
 		end
 	end
 
@@ -48,13 +48,16 @@ class InterruptServer
 			add_client(key, host, port, msg['name'], msg['time'])
 			assign_color(key)
 			ack_client(host, port)
+
 		when 'quit'
 			delete_client(key)
+
 		when 'chat'
 			if @clients.has_key? key and new_msg?(key, msg['time'])
 				color = @clients[key]['color']
 				update_time(key, msg['time'])
 				update_chat_text(msg['body'], color)
+
 			end
 		end
 	end
@@ -63,12 +66,12 @@ class InterruptServer
 		return if @colors_available.empty?
 
 		@clients[client_key]['color'] = @colors_available.shift
-		puts @clients.inspect
 	end
 
 	def handle_outbox
 		while not @outbox.empty?
 			msg = @outbox.shift
+
 			case msg['type']
 			when 'chat'
 				@clients.each{ |key, client|
@@ -76,13 +79,16 @@ class InterruptServer
 					port = client['port']
 					send_msg(msg['msg'], host, port)
 				}
+
 			when 'private_new'
 				send_msg(msg['msg'], msg['host'], msg['port'])
+
 			when 'private'
 				if @clients.has_key?(msg['key'])
 					client = @clients[key]
 					send_msg(msg['msg'], client['host'], client['port'])
 				end
+
 			end
 		end
 	end
@@ -151,14 +157,15 @@ class InterruptServer
 		@clients[key]['time'] <= time
 	end
 
-	def update_chat_text(string, color=nil) # assumes string shorter than CHAT_LENGTH
-		@chat_text = @chat_text[string.length..-1] + string
+	def update_chat_text(chr, color=nil)
+		@chat_array << [chr, color]
+		@chat_array.shift
 
 		msg = {
 			'type' => 'chat',
 			'msg' => {
 				'type' => 'chat',
-				'body' => @chat_text
+				'body' => @chat_array
 			}
 		}
 

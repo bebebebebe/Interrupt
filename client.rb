@@ -5,10 +5,10 @@ class InterruptClient
 
 	START_MSG = 'Welcome! What is your name?'
 	PROMPT = '> '
-	MAX_MSG_LENGTH = 1024 # max length of incoming message read
+	MAX_MSG_LENGTH = 3000 # max length of incoming message read
 	HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
 	CMD_QUIT = "\\"
-	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type \\"
+	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
 
 
 	def initialize(server_host, server_port)
@@ -77,8 +77,14 @@ class InterruptClient
 
 		case msg['type']
 		when 'chat'
-			text = msg['body']
-			print "\033[#{text.length}D" + text # move cursor left text.length places and print text
+			chat_array = msg['body']
+
+			string = chat_array.inject('') { |string, item|
+				string + item[0]
+			}
+
+			# move cursor left text.length places and print text
+			print "\033[#{chat_array.length}D" + string
 		end
 	end
 
