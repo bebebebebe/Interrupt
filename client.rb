@@ -24,6 +24,8 @@ class InterruptClient
 
 		@client = UDPSocket.new
 		@client.connect(@server_host, @server_port)
+
+		@latest_chat = '' # string timestamp of latest chat received
 	end
 
 	def run
@@ -84,6 +86,10 @@ class InterruptClient
 
 		case msg['type']
 		when 'chat'
+			time = msg['time']
+			return if time < @latest_chat
+
+			@latest_chat = time
 			chat_array = msg['body']
 
 			string = chat_array.inject('') { |string, item|
