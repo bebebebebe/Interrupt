@@ -64,7 +64,7 @@ class InterruptClient
 					msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
 					handle_msg(msg, sender)
 				elsif ios.tty? # ios comes from terminal
-					input = STDIN.getc.chr
+					input = STDIN.getc
 					handle_key(input)
 				end
 			}
@@ -157,6 +157,7 @@ class InterruptClient
 
 	def bye
 		terminal_reset
+		send_msg(msg_quit)
 		puts "\n\r bye \n\r"
 		exit
 	end
@@ -164,7 +165,7 @@ class InterruptClient
 end
 
 
-
+#SERVER_HOST = '192.168.0.4'
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 4481
 
