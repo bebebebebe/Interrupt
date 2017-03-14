@@ -7,13 +7,15 @@ class InterruptServer
 	TICK_LENGTH = 0.75 # how many seconds to wait before 'moving chat text left'
 	MAX_MSG_LENGTH = 1024 # max length of incoming message read
 	
-	def initialize(host, port)
+	def initialize(host, port, num_colors=5)
 		@server = UDPSocket.new
 		@server.bind(host, port)
 
 		@clients = {}
 		@chat_text = ' ' * CHAT_LENGTH
 		@outbox = [] # array of messages, as hashes with sender info
+
+		@colors_available = [*0..num_colors-1]
 	end
 
 	def run
@@ -44,15 +46,24 @@ class InterruptServer
 		case msg['type']
 		when 'connect'
 			add_client(key, host, port, msg['name'], msg['time'])
+			assign_color(key)
 			ack_client(host, port)
 		when 'quit'
 			delete_client(key)
 		when 'chat'
 			if @clients.has_key? key and new_msg?(key, msg['time'])
+				color = @clients[key]['color']
 				update_time(key, msg['time'])
-				update_chat_text(msg['body'])
+				update_chat_text(msg['body'], color)
 			end
 		end
+	end
+
+	def assign_color(client_key)
+		return if @colors_available.empty?
+
+		@clients[client_key]['color'] = @colors_available.shift
+		puts @clients.inspect
 	end
 
 	def handle_outbox
@@ -119,11 +130,16 @@ class InterruptServer
 			'name' => nickname,
 			'time' => time,
 			'host' => host,
-			'port' => port
+			'port' => port,
+			'color' => nil
 		}
 	end
 
 	def delete_client(key)
+		if (@clients[key] && not @clients[key]['color'].nil?)
+			@colors_available << @clients[key]['color']
+		end
+
 		@clients.delete(key)
 	end
 
@@ -135,8 +151,9 @@ class InterruptServer
 		@clients[key]['time'] <= time
 	end
 
-	def update_chat_text(string) # assumes string shorter than CHAT_LENGTH
+	def update_chat_text(string, color=nil) # assumes string shorter than CHAT_LENGTH
 		@chat_text = @chat_text[string.length..-1] + string
+
 		msg = {
 			'type' => 'chat',
 			'msg' => {
@@ -161,11 +178,14 @@ class InterruptServer
 
 	def send_msg(msg, host, port)
 		msg['time'] = Time.now.to_f.to_s
+
 		json = msg.to_json
 		@server.send(json, 0, host, port)
 	end
-
 end
 
-server = InterruptServer.new('localhost', 4481)
+SERVER_HOST = 'localhost'
+SERVER_PORT = 4481
+
+server = InterruptServer.new(SERVER_HOST, SERVER_PORT
 server.run
