@@ -136,7 +136,7 @@ class InterruptServer
 	end
 
 	def delete_client(key)
-		if (@clients[key] && not @clients[key]['color'].nil?)
+		if (@clients.has_key?(key) && @clients[key]['color'])
 			@colors_available << @clients[key]['color']
 		end
 
@@ -187,5 +187,5 @@ end
 SERVER_HOST = 'localhost'
 SERVER_PORT = 4481
 
-server = InterruptServer.new(SERVER_HOST, SERVER_PORT
+server = InterruptServer.new(SERVER_HOST, SERVER_PORT)
 server.run
