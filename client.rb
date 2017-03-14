@@ -10,6 +10,13 @@ class InterruptClient
 	CMD_QUIT = "\\"
 	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
 
+	COLORS = [
+		'light_green',
+		'magenta',
+		'cyan',
+		'blue',
+		'green',
+	]
 
 	def initialize(server_host, server_port)
 		@server_host = server_host
@@ -80,7 +87,8 @@ class InterruptClient
 			chat_array = msg['body']
 
 			string = chat_array.inject('') { |string, item|
-				string + item[0]
+				c = (item[1]).nil? ? nil : COLORS[item[1]]
+				string + Color.color(c, item[0])
 			}
 
 			# move cursor left text.length places and print text
@@ -170,8 +178,42 @@ class InterruptClient
 
 end
 
+module Color
+	def self.color(color, text)
+		return text if color.nil?
+		self.public_send(color, text)
+	end
 
-#SERVER_HOST = '192.168.0.4'
+  def self.red(text)
+    color_encode(text, 31)
+  end
+
+  def self.green(text)
+    color_encode(text, 32)
+  end
+
+  def self.blue(text)
+		color_encode(text, 34)
+  end
+
+  def self.cyan(text)
+    color_encode(text, 36)
+  end
+
+  def self.magenta(text)
+    color_encode(text, 35)
+  end
+
+  def self.light_green(text)
+    color_encode(text, 92)
+  end
+
+  def self.color_encode(text, code)
+    "\e[#{code}m#{text}\e[0m"
+  end
+end
+
+
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 4481
 
