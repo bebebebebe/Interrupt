@@ -30,14 +30,14 @@ The server stores two (main) pieces of state information: a list of clients conn
 
 When the client presses a (alphanumeric, space, or punctuation) key, the client sends a chat message to the server.
 
-When the server receives a [chat message from a client](#client-msg), the server sends all clients a [chat message](#server-msg) with data about the nicknames of clients in the client list and who is the 'speaker', and data representing the state of the last 45 characters of chat text as described above.
+When the server receives a [chat message from a client](#sent-by-client), the server sends all clients a [chat message](#sent-by-server) with data about the nicknames of clients in the client list and who is the 'speaker', and data representing the state of the last 45 characters of chat text as described above.
 
 When the client receives such a chat message from the server, the client overwrites the chat names list and chat text in the terminal to reflect the updated state.
 
 
-## Message formats:{#message-formats}
+## Message formats
 
-### Sent by client: {#client-msg}
+### Sent by client
 
 connect:
 `{'type' => 'connect', 'name' => (String), 'time' => (timestamp String)}`
@@ -49,7 +49,7 @@ quit:
 `{'type' => 'quit', 'time' => (timestamp String)}`
 
 
-### Sent by server: {#server-msg}
+### Sent by server
 
 chat: `{'type' => 'chat', 'body' => (Array), 'names' => (Array) 'time' => (timestamp String)}`
 
@@ -58,15 +58,15 @@ Here the `body` value is an array of arrays, with one (nested) array to represen
 ack: `{'type' => 'ack', 'time' => (timestamp String)}`
 
 
-## Behavior on wrong message types:
+## Behavior on wrong message types
 
-### Received by server:
+### Received by server
 
 Checks message format and sender. Ignores "wrong" messages, which are
 - wrong format: message isn't of the form described in "sent by client" message format types above, or
 - sender not in clients list, unless the messege is a connect message.
 
-### Received by client:
+### Received by client
 
 Checks message format and sender. Ignores "wrong" messages, which are:
 - wrong format: message isn't of the form described in "sent by server" message format types above, or
