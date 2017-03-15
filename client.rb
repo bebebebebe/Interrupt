@@ -171,7 +171,7 @@ class InterruptClient
 
 		case msg['type']
 		when 'chat'
-			msg if msg.has_key?('body')
+			msg if (msg.has_key?('body') && msg.has_key?('names'))
 		when 'ack'
 			msg
 		else

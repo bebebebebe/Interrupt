@@ -10,15 +10,18 @@ To run both the client and server on localhost, use one terminal window to run t
 ruby server.rb
 ``
 In another terminal window, run the client:
-``
+
+```
 ruby client.rb
-``
+```
+
 Run the client in a third window in the same way to chat between the two windows running the client.
 
 If you're running the client, and the server is running elsewhere at '[server-ip-address-string]', run the client with a command line argment
-``
+
+```
 ruby client.rb [server-ip-addres-string]
-``
+```
 
 
 
@@ -29,20 +32,22 @@ ruby client.rb [server-ip-addres-string]
 ### Sent by client:
 
 connect:
-{'type' => 'connect', 'name' => (String), 'time' => (timestamp String)}
+`{'type' => 'connect', 'name' => (String), 'time' => (timestamp String)}`
 
 chat:
-{'type' => 'chat', 'body' => (String), 'time' => (timestamp String)}
+`{'type' => 'chat', 'body' => (String), 'time' => (timestamp String)}`
 
 quit:
-{'type' => 'quit', 'time' => (timestamp String)}
+`{'type' => 'quit', 'time' => (timestamp String)}`
 
 
 ### Sent by server:
 
-{'type' => 'chat', 'body' => (String), 'time' => (timestamp String)}
+chat: `{'type' => 'chat', 'body' => (Array), 'names' => (Array) 'time' => (timestamp String)}`
 
-{'type' => 'ack', 'time' => (timestamp String)}
+Here the `body` value is an array of arrays, with one (nested) array to represent each letter in the chat string: `[[char (String, one letter), color (Integer)], ... ]`. The value of the `names` key is an array of arrays, one (nested) array for each client in the chat: `[[name (String), color (Integer), current_speaker? (Boolean)], ...]`.
+
+ack: `{'type' => 'ack', 'time' => (timestamp String)}`
 
 
 ## Behavior on wrong message types:
@@ -56,7 +61,7 @@ Checks message format and sender. Ignores "wrong" messages, which are
 resending the connect message until getting an acknowledgement from the server. This way
 we know the server has the client in the clients list before the client starts sending chat messages.
 
-###Received by client:
+### Received by client:
 
 Checks message format and sender. Ignores "wrong" messages, which are:
 - sender is not server
