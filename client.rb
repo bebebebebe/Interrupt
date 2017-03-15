@@ -11,11 +11,11 @@ class InterruptClient
 	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
 
 	COLORS = [
-		'light_green',
+		'green',
 		'magenta',
 		'cyan',
 		'blue',
-		'green',
+		'light_green',
 	]
 
 	def initialize(server_host, server_port)
@@ -62,7 +62,9 @@ class InterruptClient
 	end
 
 	def instructions
-		puts INSTRUCTIONS
+		print Console.clear
+
+		puts INSTRUCTIONS + "\n" * 12
 	end
 
 	def receive_loop
@@ -91,15 +93,43 @@ class InterruptClient
 
 			@latest_chat = time
 			chat_array = msg['body']
+			names_array = msg['names']
 
-			string = chat_array.inject('') { |string, item|
-				c = (item[1]).nil? ? nil : COLORS[item[1]]
-				string + Color.color(c, item[0])
+			chat_string = chat_string(chat_array)
+			names_string, names_length = names_data(names_array)
+
+			string = Console.left(chat_array.length) + Console.up(10) +
+					names_string +
+					Console.left(names_length) + Console.down(10) +
+					chat_string
+
+			print string
+		end
+	end
+
+	def chat_string(chat_array)
+		chat_array.inject('') { |string, item|
+				text, color_code = item
+				color = color_code.nil? ? nil : COLORS[color_code]
+
+				string + Console.color(color, text)
+			}
+	end
+
+	def names_data(names_array)
+		names_string = ''
+		names_length = 0
+
+		names_array.each {|item|
+			nickname, color_code, emph = item
+			names_length += nickname.length + 2
+
+			nickname = color_code.nil? ? nickname : Console.color(COLORS[color_code], nickname)
+			nickname = emph ? Console.emph(nickname) : nickname
+			names_string += " #{nickname} "
 			}
 
-			# move cursor left text.length places and print text
-			print "\033[#{chat_array.length}D" + string
-		end
+		return [names_string, names_length]
 	end
 
 	# disregard eg return, delete, backspace keys presses
@@ -178,13 +208,13 @@ class InterruptClient
 	def bye
 		terminal_reset
 		send_msg(msg_quit)
-		puts "\n\r bye \n\r"
+		puts "\n\rbye"
 		exit
 	end
 
 end
 
-module Color
+module Console
 	def self.color(color, text)
 		return text if color.nil?
 		self.public_send(color, text)
@@ -216,6 +246,31 @@ module Color
 
   def self.color_encode(text, code)
     "\e[#{code}m#{text}\e[0m"
+  end
+
+  def self.emph(text) # bold underline
+		"\e[1m\e[4m#{text}"
+  end
+
+  def self.left(num)
+		"\033[#{num}D"
+  end
+
+  def self.right(num)
+		"\033[#{num}C"
+  end
+
+  def self.up(num)
+		"\033[#{num}A"
+  end
+
+  def self.down(num)
+		"\033[#{num}B"
+  end
+
+  # clear screen and move to top
+  def self.clear()
+		"\033[2J\033[0;0H"
   end
 end
 

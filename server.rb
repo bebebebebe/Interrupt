@@ -4,7 +4,7 @@ require 'json'
 class InterruptServer
 
 	CHAT_LENGTH = 45 # length of chat text user can see at one time
-	TICK_LENGTH = 0.75 # how many seconds to wait before 'moving chat text left'
+	TICK_LENGTH = 2 # how many seconds to wait before 'moving chat text left'
 	MAX_MSG_LENGTH = 1024 # max length of incoming message read
 	
 	def initialize(host, port, num_colors=5)
@@ -33,7 +33,7 @@ class InterruptServer
 
 	def tick
 		if @chat_array != ' ' * CHAT_LENGTH
-			update_chat_text(' ', nil)
+			update_chat_array(' ', nil)
 		end
 	end
 
@@ -54,9 +54,8 @@ class InterruptServer
 
 		when 'chat'
 			if @clients.has_key? key and new_msg?(key, msg['time'])
-				color = @clients[key]['color']
 				update_time(key, msg['time'])
-				update_chat_text(msg['body'], color)
+				update_chat_array(msg['body'], key)
 
 			end
 		end
@@ -157,7 +156,9 @@ class InterruptServer
 		@clients[key]['time'] <= time
 	end
 
-	def update_chat_text(chr, color=nil)
+	def update_chat_array(chr, speaker_key=nil)
+		color = speaker_key.nil? ? nil : @clients[speaker_key]['color']
+
 		@chat_array << [chr, color]
 		@chat_array.shift
 
@@ -165,7 +166,8 @@ class InterruptServer
 			'type' => 'chat',
 			'msg' => {
 				'type' => 'chat',
-				'body' => @chat_array
+				'body' => @chat_array,
+				'names' => names_array(speaker_key)
 			}
 		}
 
@@ -189,8 +191,20 @@ class InterruptServer
 		json = msg.to_json
 		@server.send(json, 0, host, port)
 	end
+
+	def names_array(speaker_key=nil)
+		@clients.map{|k, client|
+			[
+				client['name'],
+				client['color'],
+				k == speaker_key
+			]
+		}
+	end
+
 end
 
+#SERVER_HOST = '192.168.0.5'
 SERVER_HOST = 'localhost'
 SERVER_PORT = 4481
 
