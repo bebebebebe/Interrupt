@@ -23,13 +23,21 @@ If you're running the client, and the server is running elsewhere at '[server-ip
 ruby client.rb [server-ip-addres-string]
 ```
 
+## Overview of how it works
+Clients send messages to the server, and the server sends messages to clients. Messages are sent via UDP sockets. Both client and server programs are single threaded. The messages are string representations of formats described in [Message formats](#message-formats) below.
+
+The server stores two (main) pieces of state information: a list of clients connected, and the most recent 45 characters of chatting. The list of clients connected is a hash, with information about the 'color' (an integer) the server has assigned the client, the time of the last message received from the client, the client's user supplied nickname, and the client's address information (host and port). The data for the most recent 45 characters of chatting includes info for each character about what the character is, and the 'color' (assigned integer) of the client it came from.
+
+When the client presses a (alphanumeric, space, or punctuation) key, the client sends a chat message to the server.
+
+When the server receives a [chat message from a client](#client-msg), the server sends all clients a [chat message](#server-msg) with data about the nicknames of clients in the client list and who is the 'speaker', and data representing the state of the last 45 characters of chat text as described above.
+
+When the client receives such a chat message from the server, the client overwrites the chat names list and chat text in the terminal to reflect the updated state.
 
 
-[Readme in progress: these are notes helpful while developing]
+## Message formats:{#message-formats}
 
-## Message formats:
-
-### Sent by client:
+### Sent by client: {#client-msg}
 
 connect:
 `{'type' => 'connect', 'name' => (String), 'time' => (timestamp String)}`
@@ -41,7 +49,7 @@ quit:
 `{'type' => 'quit', 'time' => (timestamp String)}`
 
 
-### Sent by server:
+### Sent by server: {#server-msg}
 
 chat: `{'type' => 'chat', 'body' => (Array), 'names' => (Array) 'time' => (timestamp String)}`
 
@@ -55,27 +63,26 @@ ack: `{'type' => 'ack', 'time' => (timestamp String)}`
 ### Received by server:
 
 Checks message format and sender. Ignores "wrong" messages, which are
-- wrong format
-- sender not in clients list, if its not a connect message
-- when client sends connect message, there should be a "handshake", where the client keeps
-resending the connect message until getting an acknowledgement from the server. This way
-we know the server has the client in the clients list before the client starts sending chat messages.
+- wrong format: message isn't of the form described in "sent by client" message format types above, or
+- sender not in clients list, unless the messege is a connect message.
 
 ### Received by client:
 
 Checks message format and sender. Ignores "wrong" messages, which are:
-- sender is not server
-- format is wrong
+- wrong format: message isn't of the form described in "sent by server" message format types above, or
+- sender is not server.
 
 ## Server message representations (internal to server program)
 chat message: send to all clients
-{'type' => 'chat', 'msg'=> {...}}
+`{'type' => 'chat', 'msg'=> {...}}`
 
-private
-{'type' => 'private', 'key'=>'..' 'msg'=> {....}}
+Private: 
+`{'type' => 'private', 'key' => (String) 'msg'=> {....}}`
 
-private to "new" user (not assumed to be in client list)
-{'type' => private_new, 'host'=>'..', 'port'=>.., msg=>{...}}
+(Private messages aren't used at present.)
+
+Private to "new" user (not assumed to be in client list):
+`{'type' => 'private_new', 'host' => (String), 'port' => (Integer), msg=>{...}}`
 
 The values of the msg keys here are of a form in the "sent by server" section above.
 
