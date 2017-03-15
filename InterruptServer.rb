@@ -32,7 +32,7 @@ class InterruptServer
 	end
 
 	def tick
-		if @chat_array != ' ' * CHAT_LENGTH
+		if @chat_array != ' ' * CHAT_LENGTH # TODO: update this
 			update_chat_array(' ', nil)
 		end
 	end

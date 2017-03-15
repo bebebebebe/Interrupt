@@ -7,12 +7,12 @@ A command line chat program for multiple clients, where the idea is to give some
 ## To run
 To run both the client and server on localhost, use one terminal window to run the server:
 ``
-ruby server.rb
+ruby InterruptServer.rb
 ``
 In another terminal window, run the client:
 
 ```
-ruby client.rb
+ruby InterruptClient.rb
 ```
 
 Run the client in a third window in the same way to chat between the two windows running the client.
@@ -20,7 +20,7 @@ Run the client in a third window in the same way to chat between the two windows
 If you're running the client, and the server is running elsewhere at '[server-ip-address-string]', run the client with a command line argment
 
 ```
-ruby client.rb [server-ip-addres-string]
+ruby InterruptClient.rb [server-ip-addres-string]
 ```
 
 ## Overview of how it works
