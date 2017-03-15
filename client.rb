@@ -3,12 +3,14 @@ require 'json'
 
 class InterruptClient
 
+	CMD_QUIT = "\\"
 	START_MSG = 'Welcome! What is your name?'
+	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
+	FAREWELL = "\r\nbye"
 	PROMPT = '> '
+
 	MAX_MSG_LENGTH = 3000 # max length of incoming message read
 	HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
-	CMD_QUIT = "\\"
-	INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
 
 	COLORS = [
 		'green',
@@ -63,7 +65,6 @@ class InterruptClient
 
 	def instructions
 		print Console.clear
-
 		puts INSTRUCTIONS + "\n" * 12
 	end
 
@@ -208,7 +209,7 @@ class InterruptClient
 	def bye
 		terminal_reset
 		send_msg(msg_quit)
-		puts "\n\rbye"
+		puts FAREWELL
 		exit
 	end
 
@@ -274,9 +275,15 @@ module Console
   end
 end
 
-
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 4481
 
-client = InterruptClient.new(SERVER_HOST, SERVER_PORT)
+if ARGV.length > 1
+	puts 'Run with 0 or 1 argument. If 1, use the server host address as a string.'
+	exit
+end
+
+host = (ARGV.length == 1 && ARGV.pop) || SERVER_HOST
+
+client = InterruptClient.new(host, SERVER_PORT)
 client.run
