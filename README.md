@@ -26,13 +26,21 @@ ruby client.rb [server-ip-addres-string]
 ## Overview of how it works
 Clients send messages to the server, and the server sends messages to clients. Messages are sent via UDP sockets. Both client and server programs are single threaded. The messages are string representations of formats described in [Message formats](#message-formats) below.
 
+### Connecting
+The client is prompted to supply a nickname on starting the program. Once supplied, the client sends the server a connect message with this nickname. When the server receives a connect message, the server sends the client an acknowledgement message and adds the client to the clients list. The client keeps resending the server connect messages (waiting a bit between resends) until getting an acknowledgement from the server.
+
+### Chatting
+
 The server stores two (main) pieces of state information: a list of clients connected, and the most recent 45 characters of chatting. The list of clients connected is a hash, with information about the 'color' (an integer) the server has assigned the client, the time of the last message received from the client, the client's user supplied nickname, and the client's address information (host and port). The data for the most recent 45 characters of chatting includes info for each character about what the character is, and the 'color' (assigned integer) of the client it came from.
 
 When the client presses a (alphanumeric, space, or punctuation) key, the client sends a chat message to the server.
 
-When the server receives a [chat message from a client](#sent-by-client), the server sends all clients a [chat message](#sent-by-server) with data about the nicknames of clients in the client list and who is the 'speaker', and data representing the state of the last 45 characters of chat text as described above.
+When the server receives a [chat message from a client](#sent-by-client), the server checks its timestamp and compares it to the time of the last message received from that client. If it's older than the last message received, the message is ignored. Assuming it's a new message, the server sends all clients a [chat message](#sent-by-server) with data about the nicknames of clients in the client list and who is the 'speaker', and data representing the state of the last 45 characters of chat text as described above.
 
-When the client receives such a chat message from the server, the client overwrites the chat names list and chat text in the terminal to reflect the updated state.
+When the client receives such a chat message from the server, the client check the timestamp to make sure its newer than the last chat message received, and if so the client overwrites the chat names list and chat text in the terminal to reflect the updated state.
+
+### Disconnecting
+When a client quits properly, that is by typing the quit command `\`, the client sends the server a quit message and the program exits. When the server receives a quit message from a client, the server removes the client from the stored clients list, and adds the 'color' (integer) associated with the client back to the list of available colors.
 
 
 ## Message formats
