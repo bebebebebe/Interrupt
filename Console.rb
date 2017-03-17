@@ -1,10 +1,10 @@
 # Utility for writing to terminal, mostly colors and cursor movements.
 
 module Console
-	def self.color(color, text)
-		return text if color.nil?
-		self.public_send(color, text)
-	end
+  def self.color(color, text)
+    return text if color.nil?
+    self.public_send(color, text)
+  end
 
   def self.red(text)
     color_encode(text, 31)
@@ -15,7 +15,7 @@ module Console
   end
 
   def self.blue(text)
-		color_encode(text, 34)
+    color_encode(text, 34)
   end
 
   def self.cyan(text)
@@ -35,27 +35,27 @@ module Console
   end
 
   def self.emph(text) # bold underline
-		"\e[1m\e[4m#{text}"
+    "\e[1m\e[4m#{text}"
   end
 
   def self.left(num)
-		"\033[#{num}D"
+    "\033[#{num}D"
   end
 
   def self.right(num)
-		"\033[#{num}C"
+    "\033[#{num}C"
   end
 
   def self.up(num)
-		"\033[#{num}A"
+    "\033[#{num}A"
   end
 
   def self.down(num)
-		"\033[#{num}B"
+    "\033[#{num}B"
   end
 
   # clear screen and move to top
   def self.clear()
-		"\033[2J\033[0;0H"
+    "\033[2J\033[0;0H"
   end
 end
