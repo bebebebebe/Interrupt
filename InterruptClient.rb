@@ -98,13 +98,12 @@ class InterruptClient
       chat_array = msg['body']
       names_array = msg['names']
 
-      chat_string = chat_string(chat_array)
       names_string, names_length = names_data(names_array)
 
       string = Console.left(chat_array.length) + Console.up(10) +
           names_string +
           Console.left(names_length) + Console.down(10) +
-          chat_string
+          chat_string(chat_array)
 
       print string
     end
@@ -121,7 +120,7 @@ class InterruptClient
 
   def names_data(names_array)
     names_string = ''
-    names_length = 0
+    names_length = 0 # names_string may have color encoding chars, so we can't just check its length
 
     names_array.each {|item|
       nickname, color_code, emph = item

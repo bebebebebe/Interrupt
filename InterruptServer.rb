@@ -7,14 +7,16 @@ class InterruptServer
   TICK_LENGTH = 2 # how many seconds to wait before 'moving chat text left'
   MAX_MSG_LENGTH = 1024 # max length of incoming message read
   
-  def initialize(host, port, num_colors=5)
+  def initialize(host, port, num_buckets=5)
     @server = UDPSocket.new
     @server.bind(host, port)
 
     @clients = {}
-    @colors_available = [*0..num_colors-1]
+    @buckets_available = [*0..num_buckets-1]
+    # buckets: at most one client can be assigned a given bucket, though clients don't have to be assigned a bucket
+    # the intended use on the client side is to use this to assign colors to users
 
-    @chat_array = Array.new(CHAT_LENGTH, [' ', nil]) # each element is [character, color]
+    @chat_array = Array.new(CHAT_LENGTH, [' ', nil]) # each element is [character, bucket]
     @outbox = [] # array of messages, as hashes with sender info
   end
 
@@ -46,7 +48,7 @@ class InterruptServer
     case msg['type']
     when 'connect'
       add_client(key, host, port, msg['name'], msg['time'])
-      assign_color(key)
+      assign_bucket(key)
       ack_client(host, port)
 
     when 'quit'
@@ -61,10 +63,10 @@ class InterruptServer
     end
   end
 
-  def assign_color(client_key)
-    return if @colors_available.empty?
+  def assign_bucket(client_key)
+    return if @buckets_available.empty?
 
-    @clients[client_key]['color'] = @colors_available.shift
+    @clients[client_key]['bucket'] = @buckets_available.shift
   end
 
   def handle_outbox
@@ -136,13 +138,13 @@ class InterruptServer
       'time' => time,
       'host' => host,
       'port' => port,
-      'color' => nil
+      'bucket' => nil
     }
   end
 
   def delete_client(key)
-    if (@clients.has_key?(key) && @clients[key]['color'])
-      @colors_available << @clients[key]['color']
+    if (@clients.has_key?(key) && @clients[key]['bucket'])
+      @buckets_available << @clients[key]['bucket']
     end
 
     @clients.delete(key)
@@ -157,9 +159,9 @@ class InterruptServer
   end
 
   def update_chat_array(chr, speaker_key=nil)
-    color = speaker_key.nil? ? nil : @clients[speaker_key]['color']
+    bucket = speaker_key.nil? ? nil : @clients[speaker_key]['bucket']
 
-    @chat_array << [chr, color]
+    @chat_array << [chr, bucket]
     @chat_array.shift
 
     msg = {
@@ -196,7 +198,7 @@ class InterruptServer
     @clients.map{|k, client|
       [
         client['name'],
-        client['color'],
+        client['bucket'],
         k == speaker_key
       ]
     }
