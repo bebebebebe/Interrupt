@@ -23,6 +23,26 @@ If you're running the client, and the server is running elsewhere at '[server-ip
 ruby InterruptClient.rb [server-ip-addres-string]
 ```
 
+#### Running from inside Docker
+
+If you have docker in your system and don't have ruby and/or don't want to download it, the following line will create a docker container with ruby and the app code mounted in the /chat folder.
+
+```
+docker run -it --name Interrupt -w /chat -v $(pwd):/chat ruby:alpine /bin/sh
+```
+
+In there, running the below command will work like normal.
+
+```
+ruby InterruptClient.rb [server-ip-addres-string]
+```
+
+Once you exit the docker container, to start it up again you can run the command below and then run the ruby script from there.
+
+```
+docker start -i Interrupt
+```
+
 ## Overview of how it works
 Clients send messages to the server, and the server sends messages to clients. Messages are sent via UDP sockets. Both client and server programs are single threaded. The messages are string representations of formats described in [Message formats](#message-formats) below.
 
@@ -84,7 +104,7 @@ Checks message format and sender. Ignores "wrong" messages, which are:
 chat message: send to all clients
 `{'type' => 'chat', 'msg'=> {...}}`
 
-Private: 
+Private:
 `{'type' => 'private', 'key' => (String) 'msg'=> {....}}`
 
 (Private messages aren't used at present.)
@@ -96,7 +116,6 @@ The values of the msg keys here are of a form in the "sent by server" section ab
 
 ## Limitations / TODO
 
-1. The server doesn't monitor clients to see if they are still running the chat program. Currently, the server will remove clients from the list of clients to message if the client quits the program properly, i.e., by typing the quit command. However, the server won't make such an update if the client halts the chat program in another way, for instance by closing the terminal window. 
+1. The server doesn't monitor clients to see if they are still running the chat program. Currently, the server will remove clients from the list of clients to message if the client quits the program properly, i.e., by typing the quit command. However, the server won't make such an update if the client halts the chat program in another way, for instance by closing the terminal window.
 
 2. The client doesn't get any feedback on keypress until the server knows about it and messages all clients with an update. One possiblity is to update the chat string on the client side with newly typed data in a lighter color or grey; it would be "overwritten" in the client's ususal colour once the server message comes through.
-
