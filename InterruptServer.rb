@@ -11,6 +11,8 @@ class InterruptServer
     @server = UDPSocket.new
     @server.bind(host, port)
 
+    puts "running on host: #{host}"
+
     @clients = {}
     @buckets_available = [*0..num_buckets-1]
     # buckets: at most one client can be assigned a given bucket, though clients don't have to be assigned a bucket
@@ -93,7 +95,6 @@ class InterruptServer
       end
     end
   end
-
 
   def sender_info(sender)
     port = sender[1]
@@ -206,9 +207,27 @@ class InterruptServer
 
 end
 
-#SERVER_HOST = '192.168.0.5'
+
 SERVER_HOST = 'localhost'
 SERVER_PORT = 4481
+local_ip = nil
 
-server = InterruptServer.new(SERVER_HOST, SERVER_PORT)
+if (ARGV.length > 1 || (ARGV.length == 1 && ARGV[0] != '-network'))
+  puts 'Run with no arguments to run on localhost. To run on local network, use one argument, `-network`'
+  exit
+end
+
+if (ARGV.length == 1 && ARGV[0] == '-network')
+  local_add = Socket.ip_address_list.detect{|add| add.ipv4_private?}
+  if local_add.nil?
+    puts 'No private ip. Check connection or run on localhost.'
+    exit
+  end
+
+  local_ip = local_add.ip_address
+end
+
+host = local_ip || SERVER_HOST
+
+server = InterruptServer.new(host, SERVER_PORT)
 server.run

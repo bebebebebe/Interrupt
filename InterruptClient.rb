@@ -43,7 +43,7 @@ class InterruptClient
   def set_name
     puts START_MSG
     print PROMPT
-    @name = gets.chomp
+    @name = STDIN.gets.chomp
   end
 
   def handshake
@@ -224,7 +224,7 @@ if ARGV.length > 1
   exit
 end
 
-host = (ARGV.length == 1 && ARGV.pop) || SERVER_HOST
+host = (ARGV.length == 1 && ARGV[0]) || SERVER_HOST
 
 client = InterruptClient.new(host, SERVER_PORT)
 client.run
