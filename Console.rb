@@ -54,8 +54,16 @@ module Console
     "\033[#{num}B"
   end
 
-  # clear screen and move to top
   def self.clear()
-    "\033[2J\033[0;0H"
+    system('clear')
   end
+
+  def self.no_echo
+    system('stty raw -echo')
+  end
+
+  def self.sane
+    system('stty -raw echo')
+  end
+
 end

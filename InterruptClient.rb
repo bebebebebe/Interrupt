@@ -66,7 +66,7 @@ class InterruptClient
   end
 
   def instructions
-    print Console.clear
+    Console.clear
     puts INSTRUCTIONS + "\n" * 12
   end
 
@@ -200,11 +200,11 @@ class InterruptClient
   end
   
   def terminal_config
-    system("stty raw -echo")
+    Console.no_echo
   end
 
   def terminal_reset
-    system("stty -raw echo")
+    Console.sane
   end
 
   def bye
