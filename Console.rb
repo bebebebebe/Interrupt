@@ -1,5 +1,7 @@
 # Utility for writing to terminal, mostly colors and cursor movements.
 
+require 'io/console'
+
 module Console
   def self.color(color, text)
     return text if color.nil?
@@ -38,24 +40,25 @@ module Console
     "\e[1m\e[4m#{text}"
   end
 
-  def self.left(num)
-    "\033[#{num}D"
+  def self.cursor_pos(row, col)
+    system("tput cup #{row} #{col}")
   end
 
-  def self.right(num)
-    "\033[#{num}C"
+  def self.term_width
+    height, width = STDIN.winsize
+    return width
   end
 
-  def self.up(num)
-    "\033[#{num}A"
-  end
-
-  def self.down(num)
-    "\033[#{num}B"
-  end
-
-  # clear screen and move to top
   def self.clear()
-    "\033[2J\033[0;0H"
+    system('clear')
   end
+
+  def self.no_echo
+    system('stty raw -echo')
+  end
+
+  def self.sane
+    system('stty -raw echo')
+  end
+
 end

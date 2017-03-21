@@ -13,6 +13,7 @@ class InterruptClient
 
   MAX_MSG_LENGTH = 3000 # max length of incoming message read
   HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
+  TEXT_LINE = 12 # what line to print chat text on in terminal
 
   COLORS = [
     'green',
@@ -30,6 +31,7 @@ class InterruptClient
     @client.connect(@server_host, @server_port)
 
     @latest_chat = '' # string timestamp of latest chat received
+    @term_width ||= Console.term_width
   end
 
   def run
@@ -66,8 +68,8 @@ class InterruptClient
   end
 
   def instructions
-    print Console.clear
-    puts INSTRUCTIONS + "\n" * 12
+    Console.clear
+    puts INSTRUCTIONS
   end
 
   def receive_loop
@@ -97,15 +99,14 @@ class InterruptClient
       @latest_chat = time
       chat_array = msg['body']
       names_array = msg['names']
-
       names_string, names_length = names_data(names_array)
 
-      string = Console.left(chat_array.length) + Console.up(10) +
-          names_string +
-          Console.left(names_length) + Console.down(10) +
-          chat_string(chat_array)
+      indent = chat_array.length > @term_width ? 1 : (@term_width - chat_array.length) / 2
 
-      print string
+      Console.cursor_pos(2, 3)
+      print names_string
+      Console.cursor_pos(TEXT_LINE, indent)
+      print chat_string(chat_array)
     end
   end
 
@@ -180,7 +181,6 @@ class InterruptClient
     end
   end
 
-
   def send_msg(msg)
     msg['time'] = Time.now.to_f.to_s
     json = msg.to_json
@@ -200,11 +200,11 @@ class InterruptClient
   end
   
   def terminal_config
-    system("stty raw -echo")
+    Console.no_echo
   end
 
   def terminal_reset
-    system("stty -raw echo")
+    Console.sane
   end
 
   def bye
