@@ -5,9 +5,9 @@ require_relative './Console'
 
 class InterruptClient
 
-  CMD_QUIT = "\\"
+  CMD_QUIT = "\u0003" # CTRL-C
   START_MSG = 'Welcome! What is your name?'
-  INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
+  INSTRUCTIONS = "Start typing to join the chat! To quit, type CTRL-C"
   FAREWELL = "\r\nbye"
   PROMPT = '> '
 
@@ -32,6 +32,14 @@ class InterruptClient
 
     @latest_chat = '' # string timestamp of latest chat received
     @term_width ||= Console.term_width
+
+    terminate_handle
+  end
+
+  def terminate_handle
+    Signal.trap('TERM') do
+      bye
+    end
   end
 
   def run
