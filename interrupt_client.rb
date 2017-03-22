@@ -39,7 +39,7 @@ class InterruptClient
 
   def run
     set_name
-    handshake
+    handshake_loop
     instructions
     terminal_config
     receive_loop
@@ -57,14 +57,11 @@ class InterruptClient
     end
   end
 
-  def handshake
-    ackd = false
-    while not ackd
+  def handshake_loop
+    loop do
       send_msg(msg_connect(@name))
       incoming = IO.select([@client], nil, nil, HANDSHAKE_WAIT)
-      if ((not incoming.nil?) && ack?)
-        ackd = true
-      end
+      break if (incoming && ack?)
     end
   end
 
