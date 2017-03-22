@@ -3,33 +3,20 @@
 require 'io/console'
 
 module Console
+
+  COLOR_CODE_MAP = {
+    'red' => 31,
+    'green' => 32,
+    'blue' => 34,
+    'cyan' => 36,
+    'magenta' => 35,
+    'light_green' => 92
+  }
+
   def self.color(color, text)
-    return text if color.nil?
-    self.public_send(color, text)
-  end
+    return text if (color.nil? || !COLOR_CODE_MAP.has_key?(color))
 
-  def self.red(text)
-    color_encode(text, 31)
-  end
-
-  def self.green(text)
-    color_encode(text, 32)
-  end
-
-  def self.blue(text)
-    color_encode(text, 34)
-  end
-
-  def self.cyan(text)
-    color_encode(text, 36)
-  end
-
-  def self.magenta(text)
-    color_encode(text, 35)
-  end
-
-  def self.light_green(text)
-    color_encode(text, 92)
+    self.color_encode(text, COLOR_CODE_MAP[color])
   end
 
   def self.color_encode(text, code)
