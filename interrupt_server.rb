@@ -3,8 +3,8 @@ require 'json'
 
 class InterruptServer
 
-  CHAT_LENGTH = 45 # length of chat text user can see at one time
-  TICK_LENGTH = 2 # how many seconds to wait before 'moving chat text left'
+  CHAT_LENGTH = 40 # length of chat text user can see at one time
+  TICK_LENGTH = 1.5 # how many seconds to wait before 'moving chat text left'
   MAX_MSG_LENGTH = 1024 # max length of incoming message read
   
   def initialize(host, port, num_buckets=5)

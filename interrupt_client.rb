@@ -1,7 +1,7 @@
 require 'socket'
 require 'json'
 
-require_relative './Console'
+require_relative './console'
 
 class InterruptClient
 
