@@ -36,8 +36,16 @@ module Console
     return width
   end
 
-  def self.clear()
+  def self.clear
     system('clear')
+  end
+
+  def self.cursor_hide
+    system('tput civis')
+  end
+
+  def self.cursor_show
+    system('tput cnorm')
   end
 
   def self.no_echo

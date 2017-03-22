@@ -108,13 +108,14 @@ class InterruptClient
       chat_array = msg['body']
       names_array = msg['names']
       names_string, names_length = names_data(names_array)
-
       indent = chat_array.length > @term_width ? 1 : (@term_width - chat_array.length) / 2
 
+      Console.cursor_hide
       Console.cursor_pos(2, 3)
       print names_string
       Console.cursor_pos(TEXT_LINE, indent)
       print chat_string(chat_array)
+      Console.cursor_show
     end
   end
 
