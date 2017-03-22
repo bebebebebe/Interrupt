@@ -5,9 +5,10 @@ require_relative './Console'
 
 class InterruptClient
 
-  CMD_QUIT = "\\"
+  CMD_QUIT = "\u0003" # CTRL-C
   START_MSG = 'Welcome! What is your name?'
-  INSTRUCTIONS = "Start typing to join the chat! To quit anytime, type #{CMD_QUIT}"
+  INSTRUCTIONS = "Start typing to join the chat! To quit, type CTRL-C"
+  NAME_FORMAT_INSTRUCTIONS = "\n For a name, use alphanumeric characters, at most 8."
   FAREWELL = "\r\nbye"
   PROMPT = '> '
 
@@ -15,13 +16,7 @@ class InterruptClient
   HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
   TEXT_LINE = 12 # what line to print chat text on in terminal
 
-  COLORS = [
-    'green',
-    'magenta',
-    'cyan',
-    'blue',
-    'light_green',
-  ]
+  COLORS = %w(green magenta cyan blue light_green)
 
   def initialize(server_host, server_port)
     @server_host = server_host
@@ -32,6 +27,14 @@ class InterruptClient
 
     @latest_chat = '' # string timestamp of latest chat received
     @term_width ||= Console.term_width
+
+    terminate_handle
+  end
+
+  def terminate_handle
+    Signal.trap('TERM') do
+      bye
+    end
   end
 
   def run
@@ -45,7 +48,13 @@ class InterruptClient
   def set_name
     puts START_MSG
     print PROMPT
-    @name = STDIN.gets.chomp
+    input = STDIN.gets.chomp
+    if input.length > 8 || /\W/.match(input)
+      puts NAME_FORMAT_INSTRUCTIONS
+      set_name
+    else
+      @name = input
+    end
   end
 
   def handshake
@@ -137,7 +146,6 @@ class InterruptClient
 
   # disregard eg return, delete, backspace keys presses
   # only pass on to server word, punctuation, or space characters
-  # TODO: strip out two chars following '\e'
   def handle_key(input)
     if input == CMD_QUIT
       bye
