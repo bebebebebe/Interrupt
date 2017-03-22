@@ -8,6 +8,7 @@ class InterruptClient
   CMD_QUIT = "\u0003" # CTRL-C
   START_MSG = 'Welcome! What is your name?'
   INSTRUCTIONS = "Start typing to join the chat! To quit, type CTRL-C"
+  NAME_FORMAT_INSTRUCTIONS = "\n For a name, use alphanumeric characters, at most 8."
   FAREWELL = "\r\nbye"
   PROMPT = '> '
 
@@ -53,7 +54,13 @@ class InterruptClient
   def set_name
     puts START_MSG
     print PROMPT
-    @name = STDIN.gets.chomp
+    input = STDIN.gets.chomp
+    if input.length > 8 || /\W/.match(input)
+      puts NAME_FORMAT_INSTRUCTIONS
+      set_name
+    else
+      @name = input
+    end
   end
 
   def handshake
@@ -145,7 +152,6 @@ class InterruptClient
 
   # disregard eg return, delete, backspace keys presses
   # only pass on to server word, punctuation, or space characters
-  # TODO: strip out two chars following '\e'
   def handle_key(input)
     if input == CMD_QUIT
       bye
