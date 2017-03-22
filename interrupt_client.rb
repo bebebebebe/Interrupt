@@ -80,8 +80,8 @@ class InterruptClient
 
   def receive_loop
     loop do
-      to_read = IO.select([@client, STDIN]) # check what's ready to read: socket, or terminal input
-      to_read[0].each { |ios|
+      readables, _, _ = IO.select([@client, STDIN])
+      readables.each { |ios|
         if ios == @client
           msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
           handle_msg(msg, sender)
@@ -89,7 +89,7 @@ class InterruptClient
           input = STDIN.getc
           handle_key(input)
         end
-      }
+     }
     end
   end
 
