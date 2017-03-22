@@ -22,7 +22,7 @@ class InterruptServer
     @outbox = [] # array of messages, as hashes with sender info
   end
 
-  def run
+  def call
     loop do
       incoming = IO.select([@server], nil, nil, TICK_LENGTH)
       if incoming.nil?
@@ -34,6 +34,8 @@ class InterruptServer
       handle_outbox
     end
   end
+
+  private
 
   def tick
     if @chat_array != ' ' * CHAT_LENGTH # TODO: update this
@@ -230,4 +232,4 @@ end
 host = local_ip || SERVER_HOST
 
 server = InterruptServer.new(host, SERVER_PORT)
-server.run
+server.()

@@ -31,18 +31,20 @@ class InterruptClient
     terminate_handle
   end
 
-  def terminate_handle
-    Signal.trap('TERM') do
-      bye
-    end
-  end
-
-  def run
+  def call
     set_name
     handshake_loop
     instructions
     terminal_config
     receive_loop
+  end
+
+  private
+
+  def terminate_handle
+    Signal.trap('TERM') do
+      bye
+    end
   end
 
   def set_name
@@ -232,4 +234,4 @@ end
 host = (ARGV.length == 1 && ARGV[0]) || SERVER_HOST
 
 client = InterruptClient.new(host, SERVER_PORT)
-client.run
+client.()
