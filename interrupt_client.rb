@@ -5,16 +5,16 @@ require_relative './console'
 
 class InterruptClient
 
-  CMD_QUIT = "\u0003" # CTRL-C
-  START_MSG = 'Welcome! What is your name?'
-  INSTRUCTIONS = "Start typing to join the chat! To quit, type CTRL-C"
-  NAME_FORMAT_INSTRUCTIONS = "\n For a name, use alphanumeric characters, at most 8."
-  FAREWELL = "\r\nbye"
-  PROMPT = '> '
+  CMD_QUIT                      = "\u0003" # CTRL-C
+  START_MSG                     = 'Welcome! What is your name?'
+  INSTRUCTIONS                  = "Start typing to join the chat! To quit, type CTRL-C"
+  NAME_FORMAT_INSTRUCTIONS      = "\n For a name, use alphanumeric characters, at most 8."
+  FAREWELL                      = "\r\nbye"
+  PROMPT                        = '> '
 
-  MAX_MSG_LENGTH = 3000 # max length of incoming message read
-  HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
-  TEXT_LINE = 12 # what line to print chat text on in terminal
+  MAX_MSG_LENGTH                = 3000 # max length of incoming message read
+  HANDSHAKE_WAIT                = 2 # number of seconds to wait for ack from server before resending
+  TEXT_LINE                     = 12 # what line to print chat text on in terminal
 
   COLORS = %w(green magenta cyan blue light_green)
 
