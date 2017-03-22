@@ -167,8 +167,7 @@ class InterruptClient
   end
 
   def is_server?(sender)
-    port = sender[1]
-    host = sender[2]
+    _, port, host = sender
 
     (port == @server_port) && (host == @server_host)
   end

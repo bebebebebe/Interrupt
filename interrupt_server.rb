@@ -99,8 +99,7 @@ class InterruptServer
   end
 
   def sender_info(sender)
-    port = sender[1]
-    host = sender[2]
+    _, port, host = sender
     key = port.to_s + host # host + port is unique per client
 
     [key, host, port]
