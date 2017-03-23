@@ -3,8 +3,8 @@ require 'json'
 
 class InterruptServer
 
-  CHAT_LENGTH = 45 # length of chat text user can see at one time
-  TICK_LENGTH = 2 # how many seconds to wait before 'moving chat text left'
+  CHAT_LENGTH = 40 # length of chat text user can see at one time
+  TICK_LENGTH = 1.5 # how many seconds to wait before 'moving chat text left'
   MAX_MSG_LENGTH = 1024 # max length of incoming message read
   
   def initialize(host, port, num_buckets=5)
@@ -22,7 +22,7 @@ class InterruptServer
     @outbox = [] # array of messages, as hashes with sender info
   end
 
-  def run
+  def call
     loop do
       incoming = IO.select([@server], nil, nil, TICK_LENGTH)
       if incoming.nil?
@@ -34,6 +34,8 @@ class InterruptServer
       handle_outbox
     end
   end
+
+  private
 
   def tick
     if @chat_array != ' ' * CHAT_LENGTH # TODO: update this
@@ -97,8 +99,7 @@ class InterruptServer
   end
 
   def sender_info(sender)
-    port = sender[1]
-    host = sender[2]
+    _, port, host = sender
     key = port.to_s + host # host + port is unique per client
 
     [key, host, port]
@@ -122,9 +123,9 @@ class InterruptServer
 
     case msg['type']
     when 'connect'
-      msg if msg.has_key?('name')
+      msg.has_key?('name') ? msg : nil
     when 'chat'
-      msg if msg.has_key?('body')
+      msg.has_key?('body') ? msg : nil
     when 'quit'
       msg
     else
@@ -230,4 +231,4 @@ end
 host = local_ip || SERVER_HOST
 
 server = InterruptServer.new(host, SERVER_PORT)
-server.run
+server.()

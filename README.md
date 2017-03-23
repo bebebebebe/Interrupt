@@ -7,20 +7,20 @@ A command line chat program for multiple clients, where the idea is to give some
 ## To run
 To run both the client and server on localhost, use one terminal window to run the server:
 ``
-ruby InterruptServer.rb
+ruby interrupt_server.rb
 ``
 In another terminal window, run the client:
 
 ```
-ruby InterruptClient.rb
+ruby interrupt_client.rb
 ```
 
 Run the client in a third window in the same way to chat between the two windows running the client.
 
-If you're running the client, and the server is running elsewhere at '[server-ip-address-string]', run the client with a command line argment
+If you're running the client, and the server is running elsewhere at '[server-ip-address-string]', run the client with a command line argument
 
 ```
-ruby InterruptClient.rb [server-ip-addres-string]
+ruby interrupt_client.rb [server-ip-addres-string]
 ```
 
 #### Running from inside Docker
@@ -34,7 +34,7 @@ docker run -it --name Interrupt -w /chat -v $(pwd):/chat ruby:alpine /bin/sh
 In there, running the below command will work like normal.
 
 ```
-ruby InterruptClient.rb [server-ip-addres-string]
+ruby interrupt_client.rb [server-ip-addres-string]
 ```
 
 Once you exit the docker container, to start it up again you can run the command below and then run the ruby script from there.

@@ -1,20 +1,21 @@
 require 'socket'
 require 'json'
 
-require_relative './Console'
+require_relative './console'
 
 class InterruptClient
 
-  CMD_QUIT = "\u0003" # CTRL-C
-  START_MSG = 'Welcome! What is your name?'
-  INSTRUCTIONS = "Start typing to join the chat! To quit, type CTRL-C"
-  NAME_FORMAT_INSTRUCTIONS = "\n For a name, use alphanumeric characters, at most 8."
-  FAREWELL = "\r\nbye"
-  PROMPT = '> '
+  CMD_QUIT                      = "\u0003" # CTRL-C
+  START_MSG                     = 'Welcome! What is your name?'
+  INSTRUCTIONS                  = "Start typing to join the chat! To quit, type CTRL-C"
+  NAME_FORMAT_INSTRUCTIONS      = "\n For a name, use alphanumeric characters, at most 8."
+  FAREWELL                      = "\r\nbye"
+  CONNECT_REFUSED_MSG           = "Connection to server refused."
+  PROMPT                        = '> '
 
-  MAX_MSG_LENGTH = 3000 # max length of incoming message read
-  HANDSHAKE_WAIT = 2 # number of seconds to wait for ack from server before resending
-  TEXT_LINE = 12 # what line to print chat text on in terminal
+  MAX_MSG_LENGTH                = 3000 # max length of incoming message read
+  HANDSHAKE_WAIT                = 2 # number of seconds to wait for ack from server before resending
+  TEXT_LINE                     = 10 # what line to print chat text on in terminal
 
   COLORS = %w(green magenta cyan blue light_green)
 
@@ -31,18 +32,20 @@ class InterruptClient
     terminate_handle
   end
 
+  def call
+    set_name
+    handshake_loop
+    instructions
+    terminal_config
+    receive_loop
+  end
+
+  private
+
   def terminate_handle
     Signal.trap('TERM') do
       bye
     end
-  end
-
-  def run
-    set_name
-    handshake
-    instructions
-    terminal_config
-    receive_loop
   end
 
   def set_name
@@ -57,19 +60,20 @@ class InterruptClient
     end
   end
 
-  def handshake
-    ackd = false
-    while not ackd
+  def handshake_loop
+    loop do
       send_msg(msg_connect(@name))
       incoming = IO.select([@client], nil, nil, HANDSHAKE_WAIT)
-      if ((not incoming.nil?) && ack?)
-        ackd = true
-      end
+      break if (incoming && ack?)
     end
   end
 
   def ack?
-    data, sender = @client.recvfrom(MAX_MSG_LENGTH)
+    begin
+      data, sender = @client.recvfrom(MAX_MSG_LENGTH)
+    rescue Errno::ECONNREFUSED
+      bye(CONNECT_REFUSED_MSG)
+    end
     msg = parse_msg(data, sender)
     return false if msg.nil?
 
@@ -79,20 +83,25 @@ class InterruptClient
   def instructions
     Console.clear
     puts INSTRUCTIONS
+    draw_line
   end
 
   def receive_loop
     loop do
-      to_read = IO.select([@client, STDIN]) # check what's ready to read: socket, or terminal input
-      to_read[0].each { |ios|
+      readables, _, _ = IO.select([@client, STDIN])
+      readables.each { |ios|
         if ios == @client
-          msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
-          handle_msg(msg, sender)
+          begin
+            msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
+            handle_msg(msg, sender)
+          rescue Errno::ECONNREFUSED
+            bye(CONNECT_REFUSED_MSG)
+          end
         elsif ios.tty? # ios comes from terminal
           input = STDIN.getc
           handle_key(input)
         end
-      }
+     }
     end
   end
 
@@ -109,13 +118,16 @@ class InterruptClient
       chat_array = msg['body']
       names_array = msg['names']
       names_string, names_length = names_data(names_array)
+      #indent = chat_array.length > @term_width ? 1 : (@term_width - chat_array.length) / 2
+      indent = 2
 
-      indent = chat_array.length > @term_width ? 1 : (@term_width - chat_array.length) / 2
-
+      Console.cursor_hide
       Console.cursor_pos(2, 3)
       print names_string
+      Console.clear_el
       Console.cursor_pos(TEXT_LINE, indent)
       print chat_string(chat_array)
+      Console.cursor_show
     end
   end
 
@@ -131,10 +143,12 @@ class InterruptClient
   def names_data(names_array)
     names_string = ''
     names_length = 0 # names_string may have color encoding chars, so we can't just check its length
+    max_length = @term_width * (TEXT_LINE - 3) # may truncate names (unlikely)
 
     names_array.each {|item|
       nickname, color_code, emph = item
       names_length += nickname.length + 2
+      break if names_length > max_length
 
       nickname = color_code.nil? ? nickname : Console.color(COLORS[color_code], nickname)
       nickname = emph ? Console.emph(nickname) : nickname
@@ -144,12 +158,20 @@ class InterruptClient
     return [names_string, names_length]
   end
 
+  # TODO: get chat length from server with ack message.
+  # Temporarily hardcoded, assuming length is 40.
+  def draw_line
+    Console.cursor_pos(TEXT_LINE + 1, 2)
+    Console.print_line(41)
+    Console.cursor_pos(TEXT_LINE, 42)
+  end
+
   # disregard eg return, delete, backspace keys presses
   # only pass on to server word, punctuation, or space characters
   def handle_key(input)
     if input == CMD_QUIT
       bye
-    elsif not /^[[[:word:]][[:punct:]] ]$/.match(input).nil?
+    elsif /^[[[:word:]][[:punct:]] ]$/.match(input)
       send_msg(msg_chat(input))
     end
   end
@@ -168,8 +190,7 @@ class InterruptClient
   end
 
   def is_server?(sender)
-    port = sender[1]
-    host = sender[2]
+    _, port, host = sender
 
     (port == @server_port) && (host == @server_host)
   end
@@ -181,7 +202,7 @@ class InterruptClient
 
     case msg['type']
     when 'chat'
-      msg if (msg.has_key?('body') && msg.has_key?('names'))
+      (msg.has_key?('body') && msg.has_key?('names')) ? msg : nil
     when 'ack'
       msg
     else
@@ -215,10 +236,11 @@ class InterruptClient
     Console.sane
   end
 
-  def bye
+  def bye(msg=nil)
     terminal_reset
     send_msg(msg_quit)
     puts FAREWELL
+    puts msg if msg
     exit
   end
 
@@ -235,4 +257,4 @@ end
 host = (ARGV.length == 1 && ARGV[0]) || SERVER_HOST
 
 client = InterruptClient.new(host, SERVER_PORT)
-client.run
+client.()
