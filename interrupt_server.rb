@@ -123,9 +123,9 @@ class InterruptServer
 
     case msg['type']
     when 'connect'
-      msg if msg.has_key?('name')
+      msg.has_key?('name') ? msg : nil
     when 'chat'
-      msg if msg.has_key?('body')
+      msg.has_key?('body') ? msg : nil
     when 'quit'
       msg
     else

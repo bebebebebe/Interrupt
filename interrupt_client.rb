@@ -14,7 +14,7 @@ class InterruptClient
 
   MAX_MSG_LENGTH                = 3000 # max length of incoming message read
   HANDSHAKE_WAIT                = 2 # number of seconds to wait for ack from server before resending
-  TEXT_LINE                     = 12 # what line to print chat text on in terminal
+  TEXT_LINE                     = 10 # what line to print chat text on in terminal
 
   COLORS = %w(green magenta cyan blue light_green)
 
@@ -78,6 +78,7 @@ class InterruptClient
   def instructions
     Console.clear
     puts INSTRUCTIONS
+    draw_line
   end
 
   def receive_loop
@@ -108,11 +109,13 @@ class InterruptClient
       chat_array = msg['body']
       names_array = msg['names']
       names_string, names_length = names_data(names_array)
-      indent = chat_array.length > @term_width ? 1 : (@term_width - chat_array.length) / 2
+      #indent = chat_array.length > @term_width ? 1 : (@term_width - chat_array.length) / 2
+      indent = 2
 
       Console.cursor_hide
       Console.cursor_pos(2, 3)
       print names_string
+      Console.clear_el
       Console.cursor_pos(TEXT_LINE, indent)
       print chat_string(chat_array)
       Console.cursor_show
@@ -131,10 +134,12 @@ class InterruptClient
   def names_data(names_array)
     names_string = ''
     names_length = 0 # names_string may have color encoding chars, so we can't just check its length
+    max_length = @term_width * (TEXT_LINE - 3) # may truncate names (unlikely)
 
     names_array.each {|item|
       nickname, color_code, emph = item
       names_length += nickname.length + 2
+      break if names_length > max_length
 
       nickname = color_code.nil? ? nickname : Console.color(COLORS[color_code], nickname)
       nickname = emph ? Console.emph(nickname) : nickname
@@ -144,12 +149,20 @@ class InterruptClient
     return [names_string, names_length]
   end
 
+  # TODO: get chat length from server with ack message.
+  # Temporarily hardcoded, assuming length is 40.
+  def draw_line
+    Console.cursor_pos(TEXT_LINE + 1, 2)
+    Console.print_line(41)
+    Console.cursor_pos(TEXT_LINE, 42)
+  end
+
   # disregard eg return, delete, backspace keys presses
   # only pass on to server word, punctuation, or space characters
   def handle_key(input)
     if input == CMD_QUIT
       bye
-    elsif not /^[[[:word:]][[:punct:]] ]$/.match(input).nil?
+    elsif /^[[[:word:]][[:punct:]] ]$/.match(input)
       send_msg(msg_chat(input))
     end
   end
@@ -180,7 +193,7 @@ class InterruptClient
 
     case msg['type']
     when 'chat'
-      msg if (msg.has_key?('body') && msg.has_key?('names'))
+      (msg.has_key?('body') && msg.has_key?('names')) ? msg : nil
     when 'ack'
       msg
     else

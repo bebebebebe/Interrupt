@@ -27,17 +27,26 @@ module Console
     "\e[1m\e[4m#{text}"
   end
 
-  def self.cursor_pos(row, col)
-    system("tput cup #{row} #{col}")
-  end
-
   def self.term_width
     height, width = STDIN.winsize
     return width
   end
 
+  def self.print_line(len)
+    line = "\u2504" * len
+    print line.encode('utf-8')
+  end
+
+  def self.cursor_pos(row, col)
+    system("tput cup #{row} #{col}")
+  end
+
   def self.clear
     system('clear')
+  end
+
+  def self.clear_el # clear to end of line
+    system('tput el')
   end
 
   def self.cursor_hide
