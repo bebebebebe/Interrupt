@@ -10,6 +10,7 @@ class InterruptClient
   INSTRUCTIONS                  = "Start typing to join the chat! To quit, type CTRL-C"
   NAME_FORMAT_INSTRUCTIONS      = "\n For a name, use alphanumeric characters, at most 8."
   FAREWELL                      = "\r\nbye"
+  CONNECT_REFUSED_MSG           = "Connection to server refused."
   PROMPT                        = '> '
 
   MAX_MSG_LENGTH                = 3000 # max length of incoming message read
@@ -68,7 +69,11 @@ class InterruptClient
   end
 
   def ack?
-    data, sender = @client.recvfrom(MAX_MSG_LENGTH)
+    begin
+      data, sender = @client.recvfrom(MAX_MSG_LENGTH)
+    rescue Errno::ECONNREFUSED
+      bye(CONNECT_REFUSED_MSG)
+    end
     msg = parse_msg(data, sender)
     return false if msg.nil?
 
@@ -86,8 +91,12 @@ class InterruptClient
       readables, _, _ = IO.select([@client, STDIN])
       readables.each { |ios|
         if ios == @client
-          msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
-          handle_msg(msg, sender)
+          begin
+            msg, sender = ios.recvfrom(MAX_MSG_LENGTH)
+            handle_msg(msg, sender)
+          rescue Errno::ECONNREFUSED
+            bye(CONNECT_REFUSED_MSG)
+          end
         elsif ios.tty? # ios comes from terminal
           input = STDIN.getc
           handle_key(input)
@@ -227,10 +236,11 @@ class InterruptClient
     Console.sane
   end
 
-  def bye
+  def bye(msg=nil)
     terminal_reset
     send_msg(msg_quit)
     puts FAREWELL
+    puts msg if msg
     exit
   end
 
