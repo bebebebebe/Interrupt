@@ -24,7 +24,7 @@ module Console
   end
 
   def self.emph(text) # bold underline
-    "\e[1m\e[4m#{text}"
+    "\e[1m\e[4m#{text}\e[0m"
   end
 
   def self.term_width
