@@ -3,9 +3,11 @@ require 'json'
 
 class InterruptServer
 
-  CHAT_LENGTH = 40 # length of chat text user can see at one time
-  TICK_LENGTH = 1.5 # how many seconds to wait before 'moving chat text left'
-  MAX_MSG_LENGTH = 1024 # max length of incoming message read
+  CHAT_LENGTH        = 40 # length of chat text user can see at one time
+  TICK_LENGTH        = 1.5 # how many seconds to wait before 'moving chat text left'
+  MAX_MSG_LENGTH     = 1024 # max length of incoming message read
+  PING_LENGTH        = 30 # how many seconds between pinging silent clients
+  PING_TRIES         = 3 # how many times a client can be pinged without reply before being dropped
   
   def initialize(host, port, num_buckets=5)
     @server = UDPSocket.new
@@ -23,6 +25,25 @@ class InterruptServer
   end
 
   def call
+    Thread.new do
+      monitor_loop
+    end
+
+    receive_loop
+  end
+
+  private
+
+  def monitor_loop
+    loop do
+      sleep PING_LENGTH
+      ping_clients
+      purge_clients
+      increment_counters
+    end
+  end
+
+  def receive_loop
     loop do
       incoming = IO.select([@server], nil, nil, TICK_LENGTH)
       if incoming.nil?
@@ -34,8 +55,6 @@ class InterruptServer
       handle_outbox
     end
   end
-
-  private
 
   def tick
     if @chat_array != ' ' * CHAT_LENGTH # TODO: update this
@@ -62,8 +81,14 @@ class InterruptServer
       if @clients.has_key? key and new_msg?(key, msg['time'])
         update_time(key, msg['time'])
         update_chat_array(msg['body'], key)
-
+        reset_counter(key)
       end
+
+    when 'ack'
+      if @clients.has_key? key
+        reset_counter(key)
+      end
+
     end
   end
 
@@ -78,7 +103,7 @@ class InterruptServer
       msg = @outbox.shift
 
       case msg['type']
-      when 'chat'
+      when 'chat', 'ping'
         @clients.each{ |key, client|
           host = client['host']
           port = client['port']
@@ -128,6 +153,8 @@ class InterruptServer
       msg.has_key?('body') ? msg : nil
     when 'quit'
       msg
+    when 'ack'
+      msg
     else
       nil
     end
@@ -140,7 +167,8 @@ class InterruptServer
       'time' => time,
       'host' => host,
       'port' => port,
-      'bucket' => nil
+      'bucket' => nil,
+      'counter' => 0
     }
   end
 
@@ -204,6 +232,36 @@ class InterruptServer
         k == speaker_key
       ]
     }
+  end
+
+  def ping_clients
+    msg = {
+      'type' => 'ping',
+      'msg' => {
+        'type' => 'ping'
+      }
+    }
+
+    @outbox << msg
+  end
+
+  def purge_clients
+    @clients.each { |key, client|
+      counter = client['counter']
+      if (client['counter'] > PING_TRIES)
+        delete_client(key)
+      end
+    }
+  end
+
+  def increment_counters
+    @clients.each { |key, client|
+      client['counter'] += 1
+    }
+  end
+
+  def reset_counter(key)
+    @clients[key]['counter'] = 0
   end
 
 end

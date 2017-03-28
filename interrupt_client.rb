@@ -110,6 +110,9 @@ class InterruptClient
     return if msg.nil?
 
     case msg['type']
+    when 'ping'
+      send_msg(msg_ack())
+
     when 'chat'
       time = msg['time']
       return if time < @latest_chat
@@ -205,6 +208,8 @@ class InterruptClient
       (msg.has_key?('body') && msg.has_key?('names')) ? msg : nil
     when 'ack'
       msg
+    when 'ping'
+      msg
     else
       nil
     end
@@ -226,6 +231,10 @@ class InterruptClient
 
   def msg_quit
     {'type' => 'quit'}
+  end
+
+  def msg_ack
+    {'type' => 'ack'}
   end
   
   def terminal_config
