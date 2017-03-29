@@ -20,6 +20,8 @@ class InterruptServer
     @next_bucket = 0
     @chat_array = Array.new(CHAT_LENGTH, [' ', nil]) # each element is [character, bucket]
     @outbox = [] # array of messages, as hashes with sender info
+
+    @monitor = false
   end
 
   def call
@@ -35,9 +37,7 @@ class InterruptServer
   def monitor_loop
     loop do
       sleep PING_LENGTH
-      ping_clients
-      purge_clients
-      increment_counters
+      @monitor = true
     end
   end
 
@@ -50,6 +50,7 @@ class InterruptServer
         data, sender = @server.recvfrom(MAX_MSG_LENGTH)
         handle_incoming(data, sender)
       end
+      monitor_clients if @monitor
       handle_outbox
     end
   end
@@ -227,6 +228,12 @@ class InterruptServer
     }
   end
 
+  def monitor_clients
+    @monitor = false
+    ping_clients
+    update_clients
+  end
+
   def ping_clients
     msg = {
       'type' => 'ping',
@@ -238,19 +245,14 @@ class InterruptServer
     @outbox << msg
   end
 
-  def purge_clients
+  def update_clients
     @clients.each { |key, client|
-      counter = client['counter']
-      if (client['counter'] > PING_TRIES)
-        delete_client(key)
-      end
-    }
-  end
-
-  def increment_counters
-    @clients.each { |key, client|
+    if client['counter'] > PING_TRIES
+      delete_client(key)
+    else
       client['counter'] += 1
-    }
+    end
+  }
   end
 
   def reset_counter(key)
