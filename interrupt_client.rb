@@ -17,7 +17,11 @@ class InterruptClient
   HANDSHAKE_WAIT                = 2 # number of seconds to wait for ack from server before resending
   TEXT_LINE                     = 10 # what line to print chat text on in terminal
 
-  COLORS = %w(green magenta cyan blue light_green)
+  COLORS = %w(
+    green magenta cyan blue
+    light_green light_red light_magenta yellow
+    light_blue light_gray red light_cyan
+  )
 
   def initialize(server_host, server_port)
     @server_host = server_host

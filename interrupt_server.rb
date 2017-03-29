@@ -8,15 +8,16 @@ class InterruptServer
   MAX_MSG_LENGTH     = 1024 # max length of incoming message read
   PING_LENGTH        = 30 # how many seconds between pinging silent clients
   PING_TRIES         = 3 # how many times a client can be pinged without reply before being dropped
-  
-  def initialize(host, port, num_buckets=5)
+  NUM_BUCKETS        = 12
+
+  def initialize(host, port)
     @server = UDPSocket.new
     @server.bind(host, port)
 
     puts "running on host: #{host}"
 
     @clients = {}
-    @buckets_available = [*0..num_buckets-1]
+    @buckets_available = [*0..NUM_BUCKETS-1]
     # buckets: at most one client can be assigned a given bucket, though clients don't have to be assigned a bucket
     # the intended use on the client side is to use this to assign colors to users
 

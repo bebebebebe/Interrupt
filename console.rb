@@ -10,7 +10,13 @@ module Console
     'blue' => 34,
     'cyan' => 36,
     'magenta' => 35,
-    'light_green' => 92
+    'light_green' => 92,
+    'yellow' => 33,
+    'light_red' => 91,
+    'light_blue' => 94,
+    'light_cyan' => 96,
+    'light_magenta' => 95,
+    'light_gray' => 37
   }
 
   def self.color(color, text)
