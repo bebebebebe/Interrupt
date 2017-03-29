@@ -8,7 +8,7 @@ class InterruptServer
   MAX_MSG_LENGTH     = 1024 # max length of incoming message read
   PING_LENGTH        = 30 # how many seconds between pinging silent clients
   PING_TRIES         = 3 # how many times a client can be pinged without reply before being dropped
-  NUM_BUCKETS        = 12
+  NUM_BUCKETS        = 12 # used to sort clients, assigning them an integer. intended use id for client to assign colors
 
   def initialize(host, port)
     @server = UDPSocket.new
@@ -17,10 +17,7 @@ class InterruptServer
     puts "running on host: #{host}"
 
     @clients = {}
-    @buckets_available = [*0..NUM_BUCKETS-1]
-    # buckets: at most one client can be assigned a given bucket, though clients don't have to be assigned a bucket
-    # the intended use on the client side is to use this to assign colors to users
-
+    @next_bucket = 0
     @chat_array = Array.new(CHAT_LENGTH, [' ', nil]) # each element is [character, bucket]
     @outbox = [] # array of messages, as hashes with sender info
   end
@@ -94,9 +91,8 @@ class InterruptServer
   end
 
   def assign_bucket(client_key)
-    return if @buckets_available.empty?
-
-    @clients[client_key]['bucket'] = @buckets_available.shift
+    @clients[client_key]['bucket'] = @next_bucket
+    @next_bucket = (@next_bucket + 1) % NUM_BUCKETS
   end
 
   def handle_outbox
@@ -174,10 +170,6 @@ class InterruptServer
   end
 
   def delete_client(key)
-    if (@clients.has_key?(key) && @clients[key]['bucket'])
-      @buckets_available << @clients[key]['bucket']
-    end
-
     @clients.delete(key)
   end
 
