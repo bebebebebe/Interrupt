@@ -17,7 +17,11 @@ class InterruptClient
   HANDSHAKE_WAIT                = 2 # number of seconds to wait for ack from server before resending
   TEXT_LINE                     = 10 # what line to print chat text on in terminal
 
-  COLORS = %w(green magenta cyan blue light_green)
+  COLORS = %w(
+    green magenta cyan blue
+    light_green light_red light_magenta yellow
+    light_blue light_gray red light_cyan
+  )
 
   def initialize(server_host, server_port)
     @server_host = server_host
@@ -110,6 +114,9 @@ class InterruptClient
     return if msg.nil?
 
     case msg['type']
+    when 'ping'
+      send_msg(msg_ack())
+
     when 'chat'
       time = msg['time']
       return if time < @latest_chat
@@ -205,6 +212,8 @@ class InterruptClient
       (msg.has_key?('body') && msg.has_key?('names')) ? msg : nil
     when 'ack'
       msg
+    when 'ping'
+      msg
     else
       nil
     end
@@ -226,6 +235,10 @@ class InterruptClient
 
   def msg_quit
     {'type' => 'quit'}
+  end
+
+  def msg_ack
+    {'type' => 'ack'}
   end
   
   def terminal_config
