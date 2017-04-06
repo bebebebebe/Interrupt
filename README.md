@@ -127,8 +127,6 @@ The values of the msg keys here are of a form in the "sent by server" section ab
 
 ## Limitations / TODO
 
-1. [*Update*: done! The server now has a thread to keep track of when to ping clients and purge the clients list. New TODO: update readme with details on this.]
-
-The server doesn't monitor clients to see if they are still running the chat program. Currently, the server will remove clients from the list of clients to message if the client quits the program properly, i.e., by typing the quit command. However, the server won't make such an update if the client halts the chat program in another way, for instance by closing the terminal window.
+1. [*Update*: done! The server now has a thread to keep track of when to ping clients and purge the clients list. New TODO: update readme with details on this.] The server doesn't monitor clients to see if they are still running the chat program. Currently, the server will remove clients from the list of clients to message if the client quits the program properly, i.e., by typing the quit command. However, the server won't make such an update if the client halts the chat program in another way, for instance by closing the terminal window.
 
 2. The client doesn't get any feedback on keypress until the server knows about it and messages all clients with an update. One possiblity is to update the chat string on the client side with newly typed data in a lighter color or grey; it would be "overwritten" in the client's ususal colour once the server message comes through. [*Update*: this wasn't an issue, at least on the network here where we tested it, and keypress-to-letter feedback felt instant, so no further work was done here. It would be interesting to work on for worse networks, though.]
