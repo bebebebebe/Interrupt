@@ -6,9 +6,11 @@ A command line chat program for multiple clients, where the idea is to give some
 
 ## To run
 To run both the client and server on localhost, use one terminal window to run the server:
-``
+
+```
 ruby interrupt_server.rb
-``
+```
+
 In another terminal window, run the client:
 
 ```
@@ -17,10 +19,19 @@ ruby interrupt_client.rb
 
 Run the client in a third window in the same way to chat between the two windows running the client.
 
+To run the server and make it available on your network rather than just via the loopback interface, do
+
+```
+ruby interrupt_server.rb -network
+```
+
+On the command line, you'll get a message saying what ip address you're running the program on.
+
+
 If you're running the client, and the server is running elsewhere at '[server-ip-address-string]', run the client with a command line argument
 
 ```
-ruby interrupt_client.rb [server-ip-addres-string]
+ruby interrupt_client.rb [server-ip-address-string]
 ```
 
 #### Running from inside Docker
