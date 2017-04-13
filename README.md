@@ -25,6 +25,13 @@ To run the server and make it available on your network rather than just via the
 ruby interrupt_server.rb -network
 ```
 
+This will run the server on your first private ipv4 ip address. If you want to select an ip address (to use something other than the first one), do
+
+```
+ruby interrupt_server.rb -network -select
+```
+This will give you a list of ip addresses to choose from.
+
 On the command line, you'll get a message saying what ip address you're running the program on.
 
 
