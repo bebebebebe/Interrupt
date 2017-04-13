@@ -266,7 +266,7 @@ SERVER_HOST = 'localhost'
 SERVER_PORT = 4481
 local_ip = nil
 
-if (ARGV.length > 1 || (ARGV.length == 1 && ARGV[0] != '-network'))
+if (ARGV.length > 2 || (ARGV.length >= 1 && ARGV[0] != '-network') || (ARGV.length == 2 && ARGV[1] != '-select'))
   puts 'Run with no arguments to run on localhost. To run on local network, use one argument, `-network`'
   exit
 end
@@ -279,6 +279,22 @@ if (ARGV.length == 1 && ARGV[0] == '-network')
   end
 
   local_ip = local_add.ip_address
+end
+
+if (ARGV.length == 2 && ARGV[0] == '-network' && ARGV[1] == '-select')
+  ip_array = Socket.ip_address_list.collect {|add| add.ip_address}
+  ip_array.each_with_index {|ip, i|
+    puts "#{i} | #{ip}"
+  }
+  puts "\n Enter integer (to left) of address you want to use"
+  print '> '
+  i = STDIN.gets.chomp.to_i
+  if i < 0 || i >= ip_array.length
+    puts "you entered #{i}. choose a number between 0 and #{ip_array.length - 1}"
+    exit
+  end
+
+  local_ip = ip_array[i]
 end
 
 host = local_ip || SERVER_HOST
