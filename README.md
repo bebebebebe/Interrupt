@@ -2,7 +2,7 @@
 
 "Realtime" interruptible chat in the terminal.
 
-<video autoplay controls src="interrupt_clip.mov"></video>
+<img src='https://cloud.githubusercontent.com/assets/2926692/25077293/7aff1b68-22f6-11e7-8312-4642fd0c803e.gif' />
 
 A command line chat program for multiple clients, where the idea is to give something like the experience of seeing a transcript of voice conversation. The text that clients see is updated with each keypress from a client. Each client is assigned a color, and their text appears in that color for all clients. Chat text appears on one line, with the cursor at the far right (representing "now"); text moves to the left as you type or as time passes. Clients can't delete or move the cursor left.
 
