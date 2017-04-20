@@ -66,7 +66,7 @@ docker start -i Interrupt
 ```
 
 ## Overview of how it works
-Clients send messages to the server, and the server sends messages to clients. Messages are sent via UDP sockets. Both client and server programs are single threaded. The messages are string representations of formats described in [Message formats](#message-formats) below.
+Clients send messages to the server, and the server sends messages to clients. Messages are sent via UDP sockets. The messages are string representations of formats described in [Message formats](#message-formats) below. The client program is single threaded. Almost everything in the server program happens on one main thread. There is an additional thread responsible for scheduling client monitoring, described [here](#monitoring-clients).
 
 ### Connecting
 The client is prompted to supply a nickname on starting the program. Once supplied, the client sends the server a connect message with this nickname. When the server receives a connect message, the server sends the client an acknowledgement message and adds the client to the clients list. The client keeps resending the server connect messages (waiting a bit between resends) until getting an acknowledgement from the server.
@@ -84,6 +84,11 @@ When the client receives such a chat message from the server, the client checks 
 ### Disconnecting
 When a client quits properly, that is by typing the quit command `\`, the client sends the server a quit message and the program exits. When the server receives a quit message from a client, the server removes the client from the stored clients list, and adds the 'color' (integer) associated with the client back to the list of available colors.
 
+### Monitoring Clients
+When a client program receives a `ping` message from the server, it sends an `ack` message to the server.
+
+The server program has an additional thread, responsible for scheduling client monitoring. This thread mostly sleeps, except to set a shared boolean to true after an interval of time (by default 30s). When this boolean is true, the main thread resets it to false, sends a `ping` message to all clients on the client list, and removes clients from the clients list who have not been heard from in a while. "A while" means no message has been received from the client for the last `n` (by default 3) ping messages.
+
 
 ## Message formats
 
@@ -98,6 +103,9 @@ chat:
 quit:
 `{'type' => 'quit', 'time' => (timestamp String)}`
 
+ack:
+`{'type' => 'ack', 'time' => (timestamp String)}`
+
 
 ### Sent by server
 
@@ -106,6 +114,8 @@ chat: `{'type' => 'chat', 'body' => (Array), 'names' => (Array) 'time' => (times
 Here the `body` value is an array of arrays, with one (nested) array to represent each letter in the chat string: `[[char (String, one letter), color (Integer)], ... ]`. The value of the `names` key is an array of arrays, one (nested) array for each client in the chat: `[[name (String), color (Integer), current_speaker? (Boolean)], ...]`.
 
 ack: `{'type' => 'ack', 'time' => (timestamp String)}`
+
+ping: `{'type' => 'ping', 'time' => (timestamp String)}`
 
 
 ## Behavior on wrong message types
@@ -136,8 +146,6 @@ Private to "new" user (not assumed to be in client list):
 
 The values of the msg keys here are of a form in the "sent by server" section above.
 
-## Limitations / TODO
+## Notes
 
-1. [*Update*: done! The server now has a thread to keep track of when to ping clients and purge the clients list. New TODO: update readme with details on this.] The server doesn't monitor clients to see if they are still running the chat program. Currently, the server will remove clients from the list of clients to message if the client quits the program properly, i.e., by typing the quit command. However, the server won't make such an update if the client halts the chat program in another way, for instance by closing the terminal window.
-
-2. The client doesn't get any feedback on keypress until the server knows about it and messages all clients with an update. One possiblity is to update the chat string on the client side with newly typed data in a lighter color or grey; it would be "overwritten" in the client's ususal colour once the server message comes through. [*Update*: this wasn't an issue, at least on the network here where we tested it, and keypress-to-letter feedback felt instant, so no further work was done here. It would be interesting to work on for worse networks, though.]
+- The client doesn't get any feedback on keypress until the server knows about it and messages all clients with an update. One possiblity is to update the chat string on the client side with newly typed data in a lighter color or grey; it would be "overwritten" in the client's ususal colour once the server message comes through. [*Update*: this wasn't an issue, at least on the network here where we tested it, and keypress-to-letter feedback felt instant, so no further work was done here. It would be interesting to work on for worse networks, though.]
