@@ -82,7 +82,7 @@ When the server receives a [chat message from a client](#sent-by-client), the se
 When the client receives such a chat message from the server, the client checks the timestamp to make sure it's newer than the last chat message received, and if so the client overwrites the chat names list and chat text in the terminal to reflect the updated state.
 
 ### Disconnecting
-When a client quits properly, that is by typing the quit command `\`, the client sends the server a quit message and the program exits. When the server receives a quit message from a client, the server removes the client from the stored clients list, and adds the 'color' (integer) associated with the client back to the list of available colors.
+When a client quits properly, that is by typing the quit command `CTRL-C`, the client sends the server a quit message and the program exits. When the server receives a quit message from a client, the server removes the client from the stored clients list, and adds the 'color' (integer) associated with the client back to the list of available colors.
 
 ### Monitoring Clients
 When a client program receives a `ping` message from the server, it sends an `ack` message to the server.
