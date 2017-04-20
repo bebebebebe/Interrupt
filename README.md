@@ -4,6 +4,8 @@
 
 <img src='https://cloud.githubusercontent.com/assets/2926692/25077293/7aff1b68-22f6-11e7-8312-4642fd0c803e.gif' />
 
+See brief intro to motivations and overview of how it works via these <a href='https://bebebebebe.github.io/presentation-chat'>slides</a> for a presentation on the project!
+
 A command line chat program for multiple clients, where the idea is to give something like the experience of seeing a transcript of voice conversation. The text that clients see is updated with each keypress from a client. Each client is assigned a color, and their text appears in that color for all clients. Chat text appears on one line, with the cursor at the far right (representing "now"); text moves to the left as you type or as time passes. Clients can't delete or move the cursor left.
 
 ## To run
